@@ -113,6 +113,7 @@ function waitForPlayer() {
 
   const startGame = () => {
     UI.stopAnimateMessage()
+    socketObject.startButtonPush()
     // eslint-disable-next-line no-use-before-define
     playOneRound()
   }
@@ -152,10 +153,8 @@ async function playOneRound() {
 }
 
 function createElementFromHTML(htmlString) {
-  console.log(htmlString)
   const div = document.createElement('tbody');
   div.innerHTML = htmlString;
-  console.dir(div)
   return div.firstElementChild;
 }
 
@@ -165,21 +164,19 @@ socketObject.cbOnInit = (idUsers) => {
   // eslint-disable-next-line no-restricted-syntax
   for (const id of idUsers) {
     card = createElementFromHTML(createPlayerCard(id))
-    console.log(card)
     messagesContainer.append(card)
   }
 }
 
+
 socketObject.cbOnUserDisconnect = (idUser) => {
   usingNames.delete(document.querySelector(`#player-${idUser} .nik`).textContent)
-  console.log(`#player-${idUser}`)
   document.querySelector(`#player-${idUser}`).remove();
 }
 
 socketObject.cbOnUserConnect = (idUser) => {
 
   const card = createElementFromHTML(createPlayerCard(idUser))
-  console.log(card)
   document.querySelector('.game-container tbody').append(card)
 }
 
@@ -249,6 +246,7 @@ function checkResult(gesture) {
   }));
   const gestures = users.map(u => u.gesture);
   const uniqueGesture = new Set(gestures);
+  
   if (uniqueGesture.size === 3 || uniqueGesture.size === 1) {
     statusText = "Ничья!"
   } else {
@@ -280,18 +278,22 @@ function checkResult(gesture) {
       }
     }
   }
-
+  let playerWins = false
   if (rockWins) {
     const idsWins = users.filter(user => user.gesture === 'rock').map(user => user.id);
     idsWins.forEach(id => {
       const score = document.querySelector(`#score-${id}`)
       if (!score) {
         playerScore += 1;
+        playerWins = true;
         return
       }
       const scoreCount = parseInt(score.innerHTML, 10)
       score.innerHTML = scoreCount + 1
     })
+    if (!playerWins) {
+      socketObject.gameOver()
+    }
   }
   if (scissorWins) {
     const idsWins = users.filter(user => user.gesture === 'scissors').map(user => user.id);
@@ -299,11 +301,15 @@ function checkResult(gesture) {
       const score = document.querySelector(`#score-${id}`)
       if (!score) {
         playerScore += 1;
+        playerWins = true;
         return
       }
       const scoreCount = parseInt(score.textContent, 10)
       score.innerHTML = scoreCount + 1
     })
+    if (!playerWins) {
+      socketObject.gameOver()
+    }
   }
   if (papersWins) {
     const idsWins = users.filter(user => user.gesture === 'paper').map(user => user.id);
@@ -311,11 +317,15 @@ function checkResult(gesture) {
       const score = document.querySelector(`#score-${id}`)
       if (!score) {
         playerScore += 1;
+        playerWins = true
         return
       }
       const scoreCount = parseInt(score.innerHTML, 10)
       score.innerHTML = scoreCount + 1
     })
+    if (!playerWins) {
+      socketObject.gameOver()
+    }
   }
   users.forEach((user) => {
     const userCard = document.querySelector(`#robot-${user.id}`)

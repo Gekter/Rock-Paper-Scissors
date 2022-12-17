@@ -33,7 +33,18 @@ const socketObject = {
   },
   userDisconnect(idUser) {
     this.cbOnUserDisconnect(idUser)
-  }
+  },
+  gameOver() {
+    socket.emit('gameOver')
+    document.body.innerHTML = 'Game over!!!'
+    // setTimeout(() => {
+    //   socket.emit('disconnect')
+    // }, 100)
+  },
+  startButtonPush() {
+    socket.emit('startButtonPush')
+  },
+  
 }
 
 socket.on("finish", (gesture) => {
@@ -50,6 +61,10 @@ socket.on("init", (idUsers) => {
 
 socket.on("user-disconnect", (idUser) => {
   socketObject.userDisconnect(idUser)
+})
+
+socket.on('alreadyPlaying', () => {
+  document.body.innerHTML = 'Игра уже начата!!'
 })
 
 export {
